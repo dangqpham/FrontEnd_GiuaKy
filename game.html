@@ -13,7 +13,7 @@
 
 <div class="game-wrapper">
     <main class="board-column">
-        <div id="tetris-board" class="board-grid"></div>
+        <canvas id="tetris-board" width="300" height="600" class="board-canvas"></canvas>
 
         <div class="controls-guide">
             <div class="controls-title">ĐIỀU KHIỂN</div>
@@ -36,7 +36,7 @@
 
         <div class="panel-box">
             <div class="panel-label">TIẾP THEO</div>
-            <div id="next-preview" class="preview-grid"></div>
+            <canvas id="next-preview" width="120" height="120" class="preview-canvas"></canvas>
         </div>
 
         <div class="panel-box">
@@ -50,6 +50,6 @@
         </div>
     </aside>
 </div>
-
+<script src="js/game.js"></script>
 </body>
 </html>
