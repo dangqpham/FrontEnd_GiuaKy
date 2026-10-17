@@ -3,11 +3,57 @@ const COLS = 10;
 const BLOCK_SIZE = 30;
 
 const LEVELS = {
-    1: { targetScore: 1000, speed: 1000, note: "Màn 1: Tốc độ cơ bản 1000ms. Đạt 1000 điểm!" },
-    2: { targetScore: 2000, speed: 900,  note: "Màn 2: Cứ xếp 3 khối sẽ xuất hiện 1 khối rác 1x1 rơi nhanh gấp đôi!" },
-    3: { targetScore: 3000, speed: 800,  note: "Màn 3: Có sẵn 3 hàng rác ngẫu nhiên ở đáy sàn!" },
-    4: { targetScore: 4000, speed: 700,  note: "Màn 4: Mỗi 15 giây tự dâng 1 hàng rác từ đáy!" },
-    5: { targetScore: 5000, speed: 500,  note: "Màn 5: Thử thách khối biến hình & khối bom nổ!" }
+    1: {
+        targetScore: 1000,
+        speed: 1000,
+        note: "Màn 1: Tốc độ cơ bản. Đạt 1000 điểm",
+        onInit: () => {},
+        onUpdate: (deltaTime) => {},
+        onMove: () => true,
+        onPlace: () => {}
+    },
+    2: {
+        targetScore: 2000,
+        speed: 850,
+        note: "Màn 2: Có sẵn 3 hàng rác ở đáy!",
+        onInit: () => {
+        },
+        onUpdate: (deltaTime) => {},
+        onMove: () => true,
+        onPlace: () => {}
+    },
+    3: {
+        targetScore: 3000,
+        speed: 700,
+        note: "Màn 3: Dâng khối rác ngẫu nhiên mỗi 15 giây!",
+        onInit: () => {},
+        onUpdate: (deltaTime) => {
+        },
+        onMove: () => true,
+        onPlace: () => {}
+    },
+    4: {
+        targetScore: 4000,
+        speed: 550,
+        note: "Màn 4: Khóa di chuyển ở nửa dưới bàn!",
+        onInit: () => {},
+        onUpdate: (deltaTime) => {},
+        onMove: () => {
+            if (currentPiece && currentPiece.y >= ROWS / 2) return false;
+            return true;
+        },
+        onPlace: () => {}
+    },
+    5: {
+        targetScore: 5000,
+        speed: 450,
+        note: "Màn 5: Thử thách khối biến hình & khối bom nổ!",
+        onInit: () => {},
+        onUpdate: (deltaTime) => {},
+        onMove: () => true,
+        onPlace: () => {
+        }
+    }
 };
 // 7 khối tiêu chuẩn, 1 khối bom đặc biệt
 const SHAPES = [
@@ -66,66 +112,21 @@ function updateLevelUI() {
     if (progressDisplay) progressDisplay.innerText = `${score}/${LEVELS[currentLevel].targetScore}`;
 }
 
-// MÀN 1: Màn chơi cơ bản
-function initLevel1() {
-    currentLevel = 1;
-    score = 0;
-    gameOver = false;
-    dropInterval = LEVELS[1].speed;
-    resetBoard();
-    updateLevelUI();
-}
-
-// MÀN 2: Thêm khối rác 1x1 khi xếp đủ 3 viên
-function initLevel2() {
-    currentLevel = 2;
-    score = 0;
-    gameOver = false;
-    dropInterval = LEVELS[2].speed;
-    placedPiecesCount = 0;
-    resetBoard();
-    updateLevelUI();
-}
-
-// MÀN 3: Có sẵn 3 hàng rác ở đáy sàn
-function initLevel3() {
-    currentLevel = 3;
-    score = 0;
-    gameOver = false;
-    dropInterval = LEVELS[3].speed;
-    resetBoard();
-    updateLevelUI();
-}
-
-// MÀN 4: Mỗi 15 giây dâng 1 hàng rác
-function initLevel4() {
-    currentLevel = 4;
-    score = 0;
-    gameOver = false;
-    dropInterval = LEVELS[4].speed;
-    levelTimer = 0;
-    resetBoard();
-    updateLevelUI();
-}
-
-// MÀN 5: Khối biến hình & Khối bom
-function initLevel5() {
-    currentLevel = 5;
-    score = 0;
-    gameOver = false;
-    dropInterval = LEVELS[5].speed;
-    levelTimer = 0;
-    resetBoard();
-    updateLevelUI();
-}
-
 // chuyển màn chơi tự động
 function loadLevel(levelNumber) {
-    if (levelNumber === 1) initLevel1();
-    else if (levelNumber === 2) initLevel2();
-    else if (levelNumber === 3) initLevel3();
-    else if (levelNumber === 4) initLevel4();
-    else if (levelNumber === 5) initLevel5();
+    currentLevel = levelNumber;
+    score = 0;
+    gameOver = false;
+
+    const config = LEVELS[currentLevel];
+    dropInterval = config.speed;
+
+    resetBoard();
+    updateLevelUI();
+
+    if (typeof config.onInit === 'function') {
+        config.onInit();
+    }
 
     currentPiece = null;
     nextPiece = null;
@@ -352,6 +353,10 @@ function dropPiece() {
     if (!checkCollision(currentPiece, 0, 1)) {
         currentPiece.y++;
     } else {
+        if (LEVELS[currentLevel].onPlace) {
+            LEVELS[currentLevel].onPlace();
+        }
+
         mergePiece();
         clearLines();
         if (!gameOver) {
@@ -372,17 +377,13 @@ function hardDrop() {
 document.addEventListener('keydown', function(event) {
     if (gameOver) return;
 
-    if (event.key === 'ArrowLeft') {
-        if (!checkCollision(currentPiece, -1, 0)) {
-            currentPiece.x--;
-        }
-    } else if (event.key === 'ArrowRight') {
-        if (!checkCollision(currentPiece, 1, 0)) {
-            currentPiece.x++;
-        }
-    } else if (event.key === 'ArrowDown') {
-        dropPiece();
-    } else if (event.key === 'ArrowUp') {
+    const canMove = LEVELS[currentLevel].onMove();
+
+    if (event.key === 'ArrowLeft' && canMove) {
+        if (!checkCollision(currentPiece, -1, 0)) currentPiece.x--;
+    } else if (event.key === 'ArrowRight' && canMove) {
+        if (!checkCollision(currentPiece, 1, 0)) currentPiece.x++;
+    } else if (event.key === 'ArrowUp' && canMove) {
         playerRotate();
     } else if (event.code === 'Space') {
         event.preventDefault();
@@ -397,6 +398,10 @@ function update(time = 0) {
 
     const deltaTime = time - lastTime;
     lastTime = time;
+
+    if (LEVELS[currentLevel].onUpdate) {
+        LEVELS[currentLevel].onUpdate(deltaTime);
+    }
 
     dropCounter += deltaTime;
     if (dropCounter > dropInterval) {
