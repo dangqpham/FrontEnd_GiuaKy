@@ -385,6 +385,8 @@ document.addEventListener('keydown', function(event) {
         if (!checkCollision(currentPiece, 1, 0)) currentPiece.x++;
     } else if (event.key === 'ArrowUp' && canMove) {
         playerRotate();
+    } else if (event.key === 'ArrowDown' && canMove) {
+        dropPiece();
     } else if (event.code === 'Space') {
         event.preventDefault();
         hardDrop();
