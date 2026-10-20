@@ -17,6 +17,21 @@ const LEVELS = {
         speed: 850,
         note: "Màn 2: Có sẵn 3 hàng rác ở đáy!",
         onInit: () => {
+            const trashRows = 3;
+            for (let r = ROWS - trashRows; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    board[r][c] = 1;
+                }
+                const emptyCount = Math.floor(Math.random() * 2) + 2;
+                let cleared = 0;
+                while (cleared < emptyCount) {
+                    const randomCol = Math.floor(Math.random() * COLS);
+                    if (board[r][randomCol] !== 0) {
+                        board[r][randomCol] = 0;
+                        cleared++;
+                    }
+                }
+            }
         },
         onUpdate: (deltaTime) => {},
         onMove: () => true,
