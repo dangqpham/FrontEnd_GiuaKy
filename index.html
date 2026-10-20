@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris - Đỉnh Cao Trí Tuệ & Phản Xạ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background-color: #111;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100vh;
+            gap: 24px;
+        }
+
+        .game-title {
+            font-size: 40px;
+            color: #00f0ff;
+            text-shadow: 4px 4px #ff0055;
+            letter-spacing: 4px;
+        }
+
+        .sidebar-right .game-title {
+            font-size: 28px;
+            text-shadow: 3px 3px #ff0055;
+            letter-spacing: 3px;
+            text-align: center;
+        }
+
+        .game-subtitle {
+            font-size: 12px;
+            color: #aaa;
+            line-height: 1.8;
+        }
+
+        .game-start {
+            display: inline-block;
+            text-decoration: none;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 14px;
+            padding: 12px 28px;
+            background-color: #00f0ff;
+            color: #000;
+            border: 3px solid #fff;
+            cursor: pointer;
+        }
+
+        .game-start:hover {
+            background-color: #ff0055;
+        }
+
+        .game-wrapper {
+            display: none;
+            gap: 25px;
+            background-color: #1c1c1c;
+            padding: 20px 25px;
+            border: 5px solid #fff;
+            box-shadow: 8px 8px 0px #000;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .board-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .board-canvas {
+            background-color: #000;
+            border: 5px solid #fff;
+            display: block;
+        }
+
+        .controls-guide {
+            width: 310px;
+            background-color: #000;
+            border: 3px solid #555;
+            padding: 10px 13px;
+            font-size: 13px;
+        }
+
+        .controls-title {
+            color: #ffde00;
+            margin-bottom: 8px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #cbd5e1;
+            font-size: 11px;
+        }
+
+        kbd {
+            background-color: #333;
+            color: #fff;
+            padding: 3px 5px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1px solid #777;
+            border-radius: 4px;
+        }
+
+        .sidebar-right {
+            display: flex;
+            flex-direction: column;
+            gap: 13px;
+            width: 240px;
+        }
+
+        .panel-box {
+            width: 100%;
+            background-color: #000;
+            border: 3px solid #555;
+            padding: 10px 8px;
+            text-align: center;
+        }
+
+        .panel-label {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+
+        .panel-value {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffde00;
+        }
+
+        .progress-value {
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1.2;
+            word-break: break-all;
+        }
+
+        .panel-note {
+            font-size: 13px;
+            color: #00f0ff;
+            line-height: 1.4;
+            text-align: left;
+            word-break: break-word;
+        }
+
+        .preview-canvas {
+            background-color: #111;
+            border: 2px solid #555;
+            display: block;
+            margin: 5px auto 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrapper" id="home-screen">
+    <h1 class="game-title">TETRIS </h1>
+    <p class="game-subtitle">Đỉnh Cao Trí Tuệ & Phản Xạ</p>
+    <a href="#" class="game-start" id="start-btn">BẮT ĐẦU</a>
+</div>
+
+<div class="game-wrapper" id="game-screen">
+    <main class="board-column">
+        <canvas id="tetris-board" width="300" height="600" class="board-canvas"></canvas>
+
+        <div class="controls-guide">
+            <div class="controls-title">ĐIỀU KHIỂN</div>
+            <div class="controls-grid">
+                <div class="control-item"><kbd>←</kbd> <kbd>→</kbd> Trái / Phải</div>
+                <div class="control-item"><kbd>↑</kbd> Xoay khối</div>
+                <div class="control-item"><kbd>↓</kbd> Rơi nhanh</div>
+                <div class="control-item"><kbd>SPACE</kbd> Thả rơi</div>
+            </div>
+        </div>
+    </main>
+
+    <aside class="sidebar-right">
+        <h1 class="game-title">TETRIS</h1>
+
+        <div class="panel-box">
+            <div class="panel-label">MÀN</div>
+            <div class="panel-value" id="level-display">01</div>
+        </div>
+
+        <div class="panel-box">
+            <div class="panel-label">TIẾP THEO</div>
+            <canvas id="next-preview" width="120" height="120" class="preview-canvas"></canvas>
+        </div>
+
+        <div class="panel-box">
+            <div class="panel-label">TIẾN ĐỘ</div>
+            <div class="panel-value progress-value" id="progress-display">0/1000</div>
+        </div>
+
+        <div class="panel-box">
+            <div class="panel-label">LƯU Ý</div>
+            <div class="panel-note" id="note-display">Tốc độ cơ bản. Xếp đủ điểm để qua màn!</div>
+        </div>
+    </aside>
+</div>
+
+<script src="js/game.js"></script>
+<script>
+    document.getElementById('start-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('home-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'flex';
+    });
+</script>
+</body>
+</html>
