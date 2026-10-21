@@ -2,6 +2,44 @@ const ROWS = 20;
 const COLS = 10;
 const BLOCK_SIZE = 30;
 
+// 7 khối tiêu chuẩn, 1 khối bom đặc biệt
+const SHAPES = [
+    [],
+    [[1, 1, 1, 1]],                         // 1: I
+    [[1, 0, 0], [1, 1, 1]],                 // 2: J
+    [[0, 0, 1], [1, 1, 1]],                 // 3: L
+    [[1, 1], [1, 1]],                       // 4: O
+    [[0, 1, 1], [1, 1, 0]],                 // 5: S
+    [[0, 1, 0], [1, 1, 1]],                 // 6: T
+    [[1, 1, 0], [0, 1, 1]],                 // 7: Z
+    [[1]]                                   // 8: Khối 1x1 đặc biệt
+];
+
+let board = [];
+let currentLevel = 1;
+let score = 0;
+let gameOver = false;
+
+let lastTime = 0;
+let dropCounter = 0;
+
+let currentPiece = null;
+let nextPiece = null;
+
+// biến riêng
+let placedPiecesCount = 0; // số khối đã đặt (màn2)
+let levelTimer = 0;         // đếm thời gian (màn 3,4,5)
+
+const boardCanvas = document.getElementById('tetris-board');
+const ctx = boardCanvas.getContext('2d');
+
+const nextCanvas = document.getElementById('next-preview');
+const nextCtx = nextCanvas.getContext('2d');
+
+const progressDisplay = document.getElementById('progress-display');
+const levelDisplay = document.getElementById('level-display');
+const noteDisplay = document.getElementById('note-display');
+
 const LEVELS = {
     1: {
         targetScore: 1000,
@@ -41,8 +79,51 @@ const LEVELS = {
         targetScore: 3000,
         speed: 700,
         note: "Màn 3: Dâng khối rác ngẫu nhiên mỗi 15 giây!",
-        onInit: () => {},
+        onInit: () => {
+            levelTimer = 0;
+        },
         onUpdate: (deltaTime) => {
+            levelTimer += deltaTime;
+
+            if (levelTimer >= 15000) {
+                levelTimer = 0;
+                let topRowHasBlock = false;
+                for (let c = 0; c < COLS; c++) {
+                    if (board[0][c] !== 0) {
+                        topRowHasBlock = true;
+                        break;
+                    }
+                }
+                if (topRowHasBlock) {
+                    alert("GAME OVER! Gạch bị đẩy vượt quá đỉnh bàn chơi.");
+                    gameOver = true;
+                    return;
+                }
+                for (let r = 0; r < ROWS - 1; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        board[r][c] = board[r + 1][c];
+                    }
+                }
+                for (let c = 0; c < COLS; c++) {
+                    board[ROWS - 1][c] = 1;
+                }
+                const emptyCount = Math.floor(Math.random() * 3) + 1;
+                let cleared = 0;
+                while (cleared < emptyCount) {
+                    const randomCol = Math.floor(Math.random() * COLS);
+                    if (board[ROWS - 1][randomCol] !== 0) {
+                        board[ROWS - 1][randomCol] = 0;
+                        cleared++;
+                    }
+                }
+                if (currentPiece && checkCollision(currentPiece, 0, 0)) {
+                    currentPiece.y--;
+                    if (checkCollision(currentPiece, 0, 0)) {
+                        alert("GAME OVER! BẠN ĐÃ THUA CUỘC.");
+                        gameOver = true;
+                    }
+                }
+            }
         },
         onMove: () => true,
         onPlace: () => {}
@@ -70,44 +151,7 @@ const LEVELS = {
         }
     }
 };
-// 7 khối tiêu chuẩn, 1 khối bom đặc biệt
-const SHAPES = [
-    [],
-    [[1, 1, 1, 1]],                         // 1: I
-    [[1, 0, 0], [1, 1, 1]],                 // 2: J
-    [[0, 0, 1], [1, 1, 1]],                 // 3: L
-    [[1, 1], [1, 1]],                       // 4: O
-    [[0, 1, 1], [1, 1, 0]],                 // 5: S
-    [[0, 1, 0], [1, 1, 1]],                 // 6: T
-    [[1, 1, 0], [0, 1, 1]],                 // 7: Z
-    [[1]]                                   // 8: Khối 1x1 đặc biệt
-];
-
-const boardCanvas = document.getElementById('tetris-board');
-const ctx = boardCanvas.getContext('2d');
-
-const nextCanvas = document.getElementById('next-preview');
-const nextCtx = nextCanvas.getContext('2d');
-
-const progressDisplay = document.getElementById('progress-display');
-const levelDisplay = document.getElementById('level-display');
-const noteDisplay = document.getElementById('note-display');
-
-let board = [];
-let currentLevel = 1;
-let score = 0;
-let gameOver = false;
-
 let dropInterval = LEVELS[currentLevel].speed;
-let lastTime = 0;
-let dropCounter = 0;
-
-let currentPiece = null;
-let nextPiece = null;
-
-// biến riêng
-let placedPiecesCount = 0; // số khối đã đặt (màn2)
-let levelTimer = 0;         // đếm thời gian (màn 4,5)
 
 // tạo bàn chơi và màn chơi
 function resetBoard() {
