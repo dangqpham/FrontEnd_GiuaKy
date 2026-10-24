@@ -184,6 +184,39 @@
             display: block;
             margin: 5px auto 0 auto;
         }
+
+        .level-select-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            margin-top: 5px;
+        }
+
+        .level-btn {
+            background-color: #222;
+            color: #fff;
+            border: 2px solid #555;
+            padding: 6px 10px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .level-btn:hover {
+            background-color: #00f0ff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        .level-btn.active {
+            background-color: #ff0055;
+            color: #fff;
+            border-color: #ffde00;
+        }
     </style>
 </head>
 <body>
@@ -215,6 +248,11 @@
         <div class="panel-box">
             <div class="panel-label">MÀN</div>
             <div class="panel-value" id="level-display">01</div>
+        </div>
+
+        <div class="panel-box">
+            <div class="panel-label">CHỌN MÀN CHƠI</div>
+            <div class="level-select-grid" id="level-select-container"></div>
         </div>
 
         <div class="panel-box">

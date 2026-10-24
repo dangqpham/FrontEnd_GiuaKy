@@ -39,6 +39,7 @@ const nextCtx = nextCanvas.getContext('2d');
 const progressDisplay = document.getElementById('progress-display');
 const levelDisplay = document.getElementById('level-display');
 const noteDisplay = document.getElementById('note-display');
+const levelSelectContainer = document.getElementById('level-select-container');
 
 const LEVELS = {
     1: {
@@ -153,6 +154,22 @@ const LEVELS = {
 };
 let dropInterval = LEVELS[currentLevel].speed;
 
+
+function renderLevelButtons() {
+    if (!levelSelectContainer) return;
+    levelSelectContainer.innerHTML = '';
+
+    Object.keys(LEVELS).forEach(lvl => {
+        const btn = document.createElement('button');
+        btn.className = `level-btn ${Number(lvl) === currentLevel ? 'active' : ''}`;
+        btn.innerText = `Màn ${lvl}`;
+        btn.onclick = () => {
+            loadLevel(Number(lvl));
+            renderLevelButtons();
+        };
+        levelSelectContainer.appendChild(btn);
+    });
+}
 // tạo bàn chơi và màn chơi
 function resetBoard() {
     board = [];
@@ -169,6 +186,7 @@ function updateLevelUI() {
     if (levelDisplay) levelDisplay.innerText = `0${currentLevel}`;
     if (noteDisplay) noteDisplay.innerText = LEVELS[currentLevel].note;
     if (progressDisplay) progressDisplay.innerText = `${score}/${LEVELS[currentLevel].targetScore}`;
+    renderLevelButtons();
 }
 
 // chuyển màn chơi tự động
@@ -392,11 +410,11 @@ function clearLines() {
 
         // điều kiện hoàn thành
         if (score >= target) {
-            if (currentLevel < 5) {
+            if (currentLevel < Object.keys(LEVELS).length) {
                 alert(`CHÚC MỪNG! BẠN ĐÃ HOÀN THÀNH MÀN ${currentLevel}! CHUYỂN SANG MÀN ${currentLevel + 1}`);
                 loadLevel(currentLevel + 1);
             } else {
-                alert("XIN CHÚC MỪNG! BẠN ĐÃ PHÁ ĐẢO TOÀN BỘ 5 MÀN CHƠI!");
+                alert("XIN CHÚC MỪNG! BẠN ĐÃ PHÁ ĐẢO TOÀN BỘ CÁC MÀN CHƠI!");
                 gameOver = true;
             }
         }
