@@ -131,7 +131,7 @@ const LEVELS = {
     4: {
         targetScore: 4000,
         speed: 550,
-        note: "Màn 4: Khóa di chuyển ở nửa dưới bàn!",
+        note: "Màn 4: Khóa di chuyển và xoay gạch ở nửa dưới bàn!",
         onInit: () => {},
         onUpdate: (deltaTime) => {},
         onMove: () => {
@@ -295,7 +295,15 @@ function draw() {
             }
         }
     }
-
+    // đường kẻ cảnh báo cho màn 4
+    if (currentLevel === 4) {
+        ctx.strokeStyle = '#ff0000';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, (ROWS / 2) * BLOCK_SIZE);
+        ctx.lineTo(COLS * BLOCK_SIZE, (ROWS / 2) * BLOCK_SIZE);
+        ctx.stroke();
+    }
     drawNextPreview();
 }
 
