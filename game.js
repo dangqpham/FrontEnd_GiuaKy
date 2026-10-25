@@ -41,6 +41,7 @@ const levelDisplay = document.getElementById('level-display');
 const noteDisplay = document.getElementById('note-display');
 const levelSelectContainer = document.getElementById('level-select-container');
 const pauseBtn = document.getElementById('pause-btn');
+const resetBtn = document.getElementById('reset-btn');
 
 const LEVELS = {
     1: {
@@ -168,9 +169,21 @@ function togglePause() {
         requestAnimationFrame(update);
     }
 }
-
+// xử lí nút Dừng (pause)
 if (pauseBtn) {
     pauseBtn.onclick = togglePause;
+}
+
+// xử lý  nút Chơi lại (Reset)
+if (resetBtn) {
+    resetBtn.onclick = () => {
+        let wasGameOver = gameOver;
+        loadLevel(currentLevel);
+        if (wasGameOver || isPaused) {
+            lastTime = performance.now();
+            requestAnimationFrame(update);
+        }
+    };
 }
 
 function renderLevelButtons() {
