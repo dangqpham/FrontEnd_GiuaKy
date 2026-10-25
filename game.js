@@ -178,8 +178,12 @@ if (pauseBtn) {
 if (resetBtn) {
     resetBtn.onclick = () => {
         let wasGameOver = gameOver;
+        let wasPaused = isPaused;
         loadLevel(currentLevel);
-        if (wasGameOver || isPaused) {
+        if (pauseBtn) {
+            pauseBtn.innerText = "TẠM DỪNG";
+        }
+        if (wasGameOver || wasPaused) {
             lastTime = performance.now();
             requestAnimationFrame(update);
         }
@@ -529,6 +533,11 @@ document.addEventListener('keydown', function(event) {
     }
 
     if (gameOver || isPaused) return;
+    // chặn cuộn trang
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(event.code) ||
+        ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+        event.preventDefault();
+    }
 
     const canMove = LEVELS[currentLevel].onMove();
 
