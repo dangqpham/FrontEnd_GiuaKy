@@ -42,7 +42,7 @@
         }
 
         .sidebar-right .game-title {
-            font-size: 28px;
+            font-size: 50px;
             text-shadow: 3px 3px #ff0055;
             letter-spacing: 3px;
             text-align: center;
@@ -217,6 +217,25 @@
             color: #fff;
             border-color: #ffde00;
         }
+
+        .pause-btn {
+            width: 100%;
+            background-color: #ffde00;
+            color: #000;
+            border: 2px solid #fff;
+            padding: 8px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .pause-btn:hover {
+            background-color: #ff0055;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -238,12 +257,15 @@
                 <div class="control-item"><kbd>↑</kbd> Xoay khối</div>
                 <div class="control-item"><kbd>↓</kbd> Rơi nhanh</div>
                 <div class="control-item"><kbd>SPACE</kbd> Thả rơi</div>
+                <div class="control-item"><kbd>P</kbd> Tạm dừng</div>
             </div>
         </div>
     </main>
 
     <aside class="sidebar-right">
         <h1 class="game-title">TETRIS</h1>
+
+        <button class="pause-btn" id="pause-btn">TẠM DỪNG</button>
 
         <div class="panel-box">
             <div class="panel-label">MÀN</div>

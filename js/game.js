@@ -19,6 +19,7 @@ let board = [];
 let currentLevel = 1;
 let score = 0;
 let gameOver = false;
+let isPaused = false;
 
 let lastTime = 0;
 let dropCounter = 0;
@@ -39,6 +40,7 @@ const progressDisplay = document.getElementById('progress-display');
 const levelDisplay = document.getElementById('level-display');
 const noteDisplay = document.getElementById('note-display');
 const levelSelectContainer = document.getElementById('level-select-container');
+const pauseBtn = document.getElementById('pause-btn');
 
 const LEVELS = {
     1: {
@@ -153,6 +155,23 @@ const LEVELS = {
 };
 let dropInterval = LEVELS[currentLevel].speed;
 
+// bật/tắt game
+function togglePause() {
+    if (gameOver) return;
+    isPaused = !isPaused;
+    if (pauseBtn) {
+        pauseBtn.innerText = isPaused ? "TIẾP TỤC" : "TẠM DỪNG";
+    }
+    draw();
+    if (!isPaused) {
+        lastTime = performance.now();
+        requestAnimationFrame(update);
+    }
+}
+
+if (pauseBtn) {
+    pauseBtn.onclick = togglePause;
+}
 
 function renderLevelButtons() {
     if (!levelSelectContainer) return;
@@ -193,6 +212,8 @@ function loadLevel(levelNumber) {
     currentLevel = levelNumber;
     score = 0;
     gameOver = false;
+    isPaused = false;
+    if (pauseBtn) pauseBtn.innerText = "TẠM DỪNG";
 
     const config = LEVELS[currentLevel];
     dropInterval = config.speed;
@@ -325,6 +346,17 @@ function draw() {
         ctx.lineTo(COLS * BLOCK_SIZE, (ROWS / 2) * BLOCK_SIZE);
         ctx.stroke();
     }
+
+    if (isPaused) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+        ctx.fillRect(0, 0, boardCanvas.width, boardCanvas.height);
+
+        ctx.fillStyle = '#ffde00';
+        ctx.font = '20px "Segoe UI", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('ĐÃ TẠM DỪNG', boardCanvas.width / 2, boardCanvas.height / 2);
+    }
+
     drawNextPreview();
 }
 
@@ -478,7 +510,12 @@ function hardDrop() {
 
 // điều khiển vòng lập game
 document.addEventListener('keydown', function(event) {
-    if (gameOver) return;
+    if (event.key === 'p' || event.key === 'P') {
+        togglePause();
+        return;
+    }
+
+    if (gameOver || isPaused) return;
 
     const canMove = LEVELS[currentLevel].onMove();
 
@@ -507,7 +544,7 @@ document.addEventListener('keydown', function(event) {
 });
 
 function update(time = 0) {
-    if (gameOver) return;
+    if (gameOver || isPaused) return;
 
     const deltaTime = time - lastTime;
     lastTime = time;
