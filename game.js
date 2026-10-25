@@ -27,11 +27,11 @@ let dropCounter = 0;
 let currentPiece = null;
 let nextPiece = null;
 
-const bgmSound = new Audio('bgm.mp3');
+const bgmSound = new Audio('music/bgm.mp3');
 bgmSound.loop = true;
-bgmSound.volume = 0.6;
+bgmSound.volume = 0.4;
 
-const clearSound = new Audio('clear.mp3');
+const clearSound = new Audio('music/clear.mp3');
 clearSound.volume = 0.8;
 
 function playBGM() {
