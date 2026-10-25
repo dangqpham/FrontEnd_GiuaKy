@@ -2,7 +2,7 @@ const ROWS = 20;
 const COLS = 10;
 const BLOCK_SIZE = 30;
 
-// 7 khối tiêu chuẩn, 1 khối bom đặc biệt
+// 7 khối tiêu chuẩn, 1 khối điểm thưởng đặc biệt (loại 8)
 const SHAPES = [
     [],
     [[1, 1, 1, 1]],                         // 1: I
@@ -12,7 +12,7 @@ const SHAPES = [
     [[0, 1, 1], [1, 1, 0]],                 // 5: S
     [[0, 1, 0], [1, 1, 1]],                 // 6: T
     [[1, 1, 0], [0, 1, 1]],                 // 7: Z
-    [[1]]                                   // 8: Khối 1x1 đặc biệt
+    [[1]]                                   // 8: Khối 1x1 đặc biệt (Khối thưởng x1.5 điểm)
 ];
 
 let board = [];
@@ -27,7 +27,6 @@ let currentPiece = null;
 let nextPiece = null;
 
 // biến riêng
-let placedPiecesCount = 0; // số khối đã đặt (màn2)
 let levelTimer = 0;         // đếm thời gian (màn 3,4,5)
 
 const boardCanvas = document.getElementById('tetris-board');
@@ -144,7 +143,7 @@ const LEVELS = {
     5: {
         targetScore: 5000,
         speed: 450,
-        note: "Màn 5: Thử thách khối biến hình & khối bom nổ!",
+        note: "Màn 5: Đảo chiều phím Trái/Phải ở nửa dưới & Khối 1x1 Thưởng Point!",
         onInit: () => {},
         onUpdate: (deltaTime) => {},
         onMove: () => true,
@@ -212,6 +211,10 @@ function loadLevel(levelNumber) {
 
 // xử lý ma trận, khối gach
 function getRandomType() {
+    // ngẫu nhiên khối đặc biệt (25%)
+    if (currentLevel === 5 && Math.random() < 0.25) {
+        return 8;
+    }
     return Math.floor(Math.random() * 7) + 1;
 }
 function createPiece(type) {
@@ -238,9 +241,9 @@ function rotateMatrix(matrix) {
 }
 
 // vẽ giao diện
-function drawBlock(context, x, y, isFilled) {
+function drawBlock(context, x, y, isFilled, type = 1) {
     if (isFilled) {
-        context.fillStyle = '#ffffff';
+        context.fillStyle = (type === 8) ? '#ff0055' : '#ffffff';
         context.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
         context.strokeStyle = '#000000';
         context.lineWidth = 1;
@@ -282,7 +285,7 @@ function drawNextPreview() {
     for (let r = 0; r < matrix.length; r++) {
         for (let c = 0; c < matrix[r].length; c++) {
             if (matrix[r][c] !== 0) {
-                drawBlock(nextCtx, offsetX + c, offsetY + r, true);
+                drawBlock(nextCtx, offsetX + c, offsetY + r, true, nextPiece.type);
             }
         }
     }
@@ -297,7 +300,7 @@ function draw() {
     for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
             if (board[r][c] !== 0) {
-                drawBlock(ctx, c, r, true);
+                drawBlock(ctx, c, r, true, board[r][c]);
             }
         }
     }
@@ -308,14 +311,14 @@ function draw() {
         for (let r = 0; r < matrix.length; r++) {
             for (let c = 0; c < matrix[r].length; c++) {
                 if (matrix[r][c] !== 0) {
-                    drawBlock(ctx, currentPiece.x + c, currentPiece.y + r, true);
+                    drawBlock(ctx, currentPiece.x + c, currentPiece.y + r, true, currentPiece.type);
                 }
             }
         }
     }
-    // đường kẻ cảnh báo cho màn 4
-    if (currentLevel === 4) {
-        ctx.strokeStyle = '#ff0000';
+    // đường kẻ cảnh báo cho màn 4 & màn 5
+    if (currentLevel === 4 || currentLevel === 5) {
+        ctx.strokeStyle = currentLevel === 5 ? '#00f0ff' : '#ff0000';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(0, (ROWS / 2) * BLOCK_SIZE);
@@ -373,6 +376,7 @@ function mergePiece() {
 
 function clearLines() {
     let linesCleared = 0;
+    let hasSpecialBlockInClearedLines = false;
 
     for (let r = ROWS - 1; r >= 0; r--) {
         let isFullLine = true;
@@ -386,6 +390,13 @@ function clearLines() {
 
         if (isFullLine) {
             linesCleared++;
+
+            // Kiểm tra xem hàng bị ăn này có chứa Khối đặc biệt hay không
+            for (let c = 0; c < COLS; c++) {
+                if (board[r][c] === 8) {
+                    hasSpecialBlockInClearedLines = true;
+                }
+            }
 
             for (let y = r; y > 0; y--) {
                 for (let x = 0; x < COLS; x++) {
@@ -403,7 +414,14 @@ function clearLines() {
 
     if (linesCleared > 0) {
         const points = [0, 100, 300, 500, 800];
-        score += points[linesCleared];
+        let earnedPoints = points[linesCleared];
+
+        // cơ chế màn 5: các hàng bị ăn có khối đặc biệt sẽ được x 1.5 điểm
+        if (hasSpecialBlockInClearedLines) {
+            earnedPoints = Math.floor(earnedPoints * 1.5);
+        }
+
+        score += earnedPoints;
 
         const target = LEVELS[currentLevel].targetScore;
         progressDisplay.innerText = `${score}/${target}`;
@@ -464,10 +482,18 @@ document.addEventListener('keydown', function(event) {
 
     const canMove = LEVELS[currentLevel].onMove();
 
+    // Logic Màn 5: đảo ngược phím
+    let moveLeftDir = -1;
+    let moveRightDir = 1;
+
+    if (currentLevel === 5 && currentPiece && currentPiece.y >= ROWS / 2) {
+        moveLeftDir = 1;
+        moveRightDir = -1;
+    }
     if (event.key === 'ArrowLeft' && canMove) {
-        if (!checkCollision(currentPiece, -1, 0)) currentPiece.x--;
+        if (!checkCollision(currentPiece, moveLeftDir, 0)) currentPiece.x += moveLeftDir;
     } else if (event.key === 'ArrowRight' && canMove) {
-        if (!checkCollision(currentPiece, 1, 0)) currentPiece.x++;
+        if (!checkCollision(currentPiece, moveRightDir, 0)) currentPiece.x += moveRightDir;
     } else if (event.key === 'ArrowUp' && canMove) {
         playerRotate();
     } else if (event.key === 'ArrowDown' && canMove) {
