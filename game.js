@@ -27,6 +27,16 @@ let dropCounter = 0;
 let currentPiece = null;
 let nextPiece = null;
 
+const bgmSound = new Audio('bgm.mp3');
+bgmSound.loop = true;
+bgmSound.volume = 0.6;
+
+const clearSound = new Audio('clear.mp3');
+clearSound.volume = 0.8;
+
+function playBGM() {
+    bgmSound.play().catch(() => {});
+}
 // biến riêng
 let levelTimer = 0;         // đếm thời gian (màn 3,4,5)
 
@@ -98,6 +108,7 @@ const LEVELS = {
                     }
                 }
                 if (topRowHasBlock) {
+                    bgmSound.pause();
                     alert("GAME OVER! Gạch bị đẩy vượt quá đỉnh bàn chơi.");
                     gameOver = true;
                     return;
@@ -122,6 +133,7 @@ const LEVELS = {
                 if (currentPiece && checkCollision(currentPiece, 0, 0)) {
                     currentPiece.y--;
                     if (checkCollision(currentPiece, 0, 0)) {
+                        bgmSound.pause();
                         alert("GAME OVER! BẠN ĐÃ THUA CUỘC.");
                         gameOver = true;
                     }
@@ -163,6 +175,13 @@ function togglePause() {
     if (pauseBtn) {
         pauseBtn.innerText = isPaused ? "TIẾP TỤC" : "TẠM DỪNG";
     }
+
+    if (isPaused) {
+        bgmSound.pause();
+    } else {
+        playBGM();
+    }
+
     draw();
     if (!isPaused) {
         lastTime = performance.now();
@@ -183,6 +202,7 @@ if (resetBtn) {
         if (pauseBtn) {
             pauseBtn.innerText = "TẠM DỪNG";
         }
+        playBGM();
         if (wasGameOver || wasPaused) {
             lastTime = performance.now();
             requestAnimationFrame(update);
@@ -201,6 +221,9 @@ function renderLevelButtons() {
         btn.onclick = () => {
             loadLevel(Number(lvl));
             renderLevelButtons();
+            if (!isPaused && !gameOver) {
+                playBGM();
+            }
         };
         levelSelectContainer.appendChild(btn);
     });
@@ -462,6 +485,10 @@ function clearLines() {
     }
 
     if (linesCleared > 0) {
+        // tiếng ăn điểm
+        clearSound.currentTime = 0;
+        clearSound.play().catch(() => {});
+
         const points = [0, 100, 300, 500, 800];
         let earnedPoints = points[linesCleared];
 
@@ -481,6 +508,7 @@ function clearLines() {
                 alert(`CHÚC MỪNG! BẠN ĐÃ HOÀN THÀNH MÀN ${currentLevel}! CHUYỂN SANG MÀN ${currentLevel + 1}`);
                 loadLevel(currentLevel + 1);
             } else {
+                bgmSound.pause();
                 alert("XIN CHÚC MỪNG! BẠN ĐÃ PHÁ ĐẢO TOÀN BỘ CÁC MÀN CHƠI!");
                 gameOver = true;
             }
@@ -496,6 +524,7 @@ function spawnPiece() {
     nextPiece = createPiece(getRandomType());
 
     if (checkCollision(currentPiece, 0, 0)) {
+        bgmSound.pause();
         alert("GAME OVER! BẠN ĐÃ THUA CUỘC.");
         gameOver = true;
     }
@@ -558,7 +587,6 @@ document.addEventListener('keydown', function(event) {
     } else if (event.key === 'ArrowDown' && canMove) {
         dropPiece();
     } else if (event.code === 'Space') {
-        event.preventDefault();
         hardDrop();
     }
 

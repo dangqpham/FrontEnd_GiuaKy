@@ -314,6 +314,15 @@
         document.getElementById('home-screen').style.display = 'none';
         document.getElementById('game-screen').style.display = 'flex';
     });
+    document.getElementById('start-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('home-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'flex';
+
+        if (typeof playBGM === 'function') {
+            playBGM();
+        }
+    });
 </script>
 </body>
 </html>
